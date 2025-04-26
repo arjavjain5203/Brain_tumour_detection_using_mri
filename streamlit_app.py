@@ -25,8 +25,18 @@ if uploaded_file is not None:
     img = np.expand_dims(img, axis=0)
     
     # Predict
-    pred = model.predict(img)
-    prediction = {classes[i]: float(pred[0][i]) for i in range(4)}
-    
-    st.subheader("Prediction:")
-    st.json(prediction)
+    pred = model.predict(img)[0]
+    pred_dict = {classes[i]: float(pred[i]) for i in range(4)}
+
+    # Get top prediction
+    top_class = classes[np.argmax(pred)]
+    top_confidence = np.max(pred) * 100
+
+    # Display main prediction
+    st.subheader("🔍 Prediction Result")
+    st.success(f"**{top_class.upper()}** tumor detected with **{top_confidence:.2f}%** confidence.")
+
+    # Show all confidence scores
+    st.subheader("📊 Confidence Scores")
+    for cls, conf in pred_dict.items():
+        st.write(f"**{cls.capitalize()}**: {conf * 100:.2f}%")
