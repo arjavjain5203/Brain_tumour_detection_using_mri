@@ -1,26 +1,32 @@
-import gradio as gr
+import streamlit as st
 import numpy as np
 from PIL import Image
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing.image import img_to_array
 
 # Load model
-from tensorflow.keras.models import load_model
 model = load_model("brain_tumor_model.h5")
-
-# Class labels
 classes = ['glioma', 'meningioma', 'no_tumor', 'pituitary']
 
-def predict(img):
-    img = img.resize((128, 128))
-    img = np.array(img) / 255.0
-    img = img.reshape(1, 128, 128, 3)
+# Streamlit UI
+st.set_page_config(page_title="Brain Tumor Classifier", layout="centered")
+st.title("🧠 Brain Tumor MRI Classifier")
+st.write("Upload an MRI scan image to detect the tumor type.")
+
+uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+
+if uploaded_file is not None:
+    image = Image.open(uploaded_file)
+    st.image(image, caption="Uploaded MRI", use_column_width=True)
+    
+    # Preprocess
+    img = image.resize((128, 128))
+    img = img_to_array(img) / 255.0
+    img = np.expand_dims(img, axis=0)
+    
+    # Predict
     pred = model.predict(img)
-    return {classes[i]: float(pred[0][i]) for i in range(4)}
-
-# Create Gradio interface
-interface = gr.Interface(fn=predict,
-                         inputs=gr.Image(type="pil"),
-                         outputs=gr.Label(num_top_classes=4),
-                         title="Brain Tumor MRI Classifier",
-                         description="Upload an MRI scan to detect brain tumor type.")
-
-interface.launch()
+    prediction = {classes[i]: float(pred[0][i]) for i in range(4)}
+    
+    st.subheader("Prediction:")
+    st.json(prediction)

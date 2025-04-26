@@ -1,3 +1,7 @@
+streamlit
+tensorflow
+numpy
+Pillow
 kagglehub
 numpy
 opencv-python
